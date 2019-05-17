@@ -36,7 +36,7 @@ void DieWithError(char *errorMessage){
 void commun(int sock){
 	char buf[BUF_SIZE];
 	int len_r;
-	char *message = "闇の炎に抱かれて眠れ";
+	char *message = "世界の半分が欲しくはないか";
 	if(send(sock,message,strlen(message),0)!=strlen(message))DieWithError("send() sent amessage of unexpected bytes");
 	if((len_r=recv(sock,buf,BUF_SIZE,0))<=0)DieWithError("recv()failed");
 	buf[len_r]='\0';
