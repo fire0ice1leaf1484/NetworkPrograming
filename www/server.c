@@ -38,11 +38,25 @@ void DieWithError(char *errorMessage){
 	exit(1);
 }
 void commun(int sock){
+	int i;
 	char buf[BUF_SIZE];
+	char res[4][BUF_SIZE]={
+		"HTTP/1.1 200 OK\r\n",
+		"Content-Type: text/html; charset=utf-8\r\n\r\n",
+		"<!DOCTYPE html><html><head><title>ネットワークプログラミングのwebサイト",
+		"</title></head><body>ネットワーク大好き</body></html>"};
 	int len_r;
-	if((len_r=recv(sock,buf,BUF_SIZE,0))<=0)DieWithError("recv()failed");
-	buf[len_r]='\0';
-	printf("%s\n",buf);
-	if(send(sock,buf,strlen(buf),0)!=strlen(buf))DieWithError("send() sent amessage of unexpected bytes");
+	while((len_r=recv(sock,buf,BUF_SIZE,0))>=0){
+		buf[len_r]='\0';
+		printf("%s\n",buf);
+		if(strstr(buf,"\n\n")!='\0'||strstr(buf,"\r\n\r\n")!='\0'){
+			for(i=0;i<4;i++){
+				if(send(sock,res[i],strlen(buf),0)!=strlen(buf))DieWithError("send() sent amessage of unexpected bytes");
+			}
+			break;
+		}
+	}
+	if(len_r<=0)DieWithError("recv()failed");
+	
 }
 	
