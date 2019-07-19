@@ -1,10 +1,10 @@
 #include<stdlib.h>
+#include<regex.h>
 #include<stdio.h>
 #include<sys/socket.h>
 #include<arpa/inet.h>
 #include<unistd.h>
 #include<string.h>
-
 #define BUF_SIZE 256
 
 void commun(int);
@@ -38,23 +38,54 @@ void DieWithError(char *errorMessage){
 	exit(1);
 }
 void commun(int sock){
-	int i;
-	char buf[BUF_SIZE];
 	char res[4][BUF_SIZE]={
 		"HTTP/1.1 200 OK\r\n",
 		"Content-Type: text/html; charset=utf-8\r\n\r\n",
-		"<!DOCTYPE html><html><head><title>ƒlƒbƒgƒ[ƒNƒvƒƒOƒ‰ƒ~ƒ“ƒO‚ÌwebƒTƒCƒg",
-		"</title></head><body>ƒlƒbƒgƒ[ƒN‘åD‚«</body></html>"};
-	int len_r;
-	while((len_r=recv(sock,buf,BUF_SIZE,0))>=0){
-		buf[len_r]='\0';
-		printf("%s\n",buf);
-		if(strstr(buf,"\n\n")!='\0'||strstr(buf,"\r\n\r\n")!='\0'){
-			for(i=0;i<4;i++){
-				if(send(sock,res[i],strlen(buf),0)!=strlen(buf))DieWithError("send() sent amessage of unexpected bytes");
-			}
-			break;
-		}
+		"<!DOCTYPE html><html><head><title>ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯ãƒ—ãƒ­ã‚°ãƒ©ãƒŸãƒ³ã‚°ã®webã‚µã‚¤ãƒˆ",
+		"</title></head><body>ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯å¤§å¥½ã</body></html>"
+	};
+	int i; 
+	char buf[BUF_SIZE];
+	char buf_old[BUF_SIZE];
+	char buf2[BUF_SIZE];
+	char result[100];
+	char *uri;
+	result[0] = '\n';
+    int len_r;
+	regex_t regBuf;
+	const char *pattern = "GET[^\\n]+HTTP";
+	regmatch_t regMatch[1];
+	if(regcomp(&regBuf,pattern,REG_EXTENDED | REG_NEWLINE)!=0){
+		DieWithError("regcomp failed");
+	}
+	buf_old[0] = '\0';
+	
+    while((len_r = recv(sock, buf, BUF_SIZE, 0)) > 0){
+    	if(regexec(&regBuf,buf2,1,regMatch,0) != 0){
+    		int startIndex = regMatch[0].rm_so;
+    		int endIndex = regMatch[0].rm_so;
+    		strncpy(result,buf2 + startIndex,endIndex - startIndex);
+    	}
+        buf[len_r] = '\0';
+        sprintf(buf2,"%s%s", buf_old,buf);
+        if (strstr(buf2, "\r\n\r\n")) {
+            break;
+        }
+    	sprintf(buf_old,"%s",buf);
+    }
+	if (result[0] != '\0') {
+		uri = strtok(uri, " ");
+		uri = strtok(NULL, " ");
+		printf("%sÂ¥n", uri);
+	} else {
+		DieWithError("No URI");
+	}
+	regfree(&regBuf);
+    if (len_r <= 0)DieWithError("received() failed.");
+	
+	printf("received HTTP Request.\n");
+	for(i=0;i<4;i++){
+		if(send(sock,res[i],strlen(res[i]),0)!=strlen(res[i]))DieWithError("send() sent amessage of unexpected bytes");
 	}
 	if(len_r<=0)DieWithError("recv()failed");
 	
