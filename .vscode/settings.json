@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "regex.h": "c"
+        "regex.h": "c",
+        "CLIENT.C": "cpp"
     }
 }

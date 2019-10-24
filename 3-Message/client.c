@@ -9,10 +9,11 @@
 #define MONEY_DIGIT_SIZE 10
 
 void DieWithError(char *);
-int prepare_client_socket(char *, int);
 void my_scanf(char *, int);
 void commun(int);
 void read_until_delim(int, char *, char, int);
+
+int prepare_client_socket(char *, int);
 
 int main(int argc, char *argv[])
 {
